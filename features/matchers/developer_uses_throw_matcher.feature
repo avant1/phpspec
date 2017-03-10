@@ -213,3 +213,72 @@ Feature: Developer uses throw matcher
       """
     When I run phpspec
     Then the suite should pass
+
+  Scenario: Developer uses exception collaborator as argument to ThrowMatcher
+    Given the spec file "spec/Matchers/ThrowExample6/ClassUnderSpecificationSpec.php" contains:
+      """
+      <?php
+
+      namespace spec\Matchers\ThrowExample6;
+
+      use PhpSpec\ObjectBehavior;
+      use Prophecy\Argument;
+      use Matchers\ThrowExample6\Mock;
+      use Matchers\ThrowExample6\DomainException;
+
+      class ClassUnderSpecificationSpec extends ObjectBehavior
+      {
+          function it_unwraps_exception_collaborator(Mock $mock, DomainException $e)
+          {
+              $e->getFoo()->willReturn(50);
+              $mock->work()->willThrow($e);
+
+              $this->work($mock)->shouldReturn(50);
+          }
+      }
+
+      """
+    And the class file "src/Matchers/ThrowExample6/ClassUnderSpecification.php" contains:
+      """
+      <?php
+
+      namespace Matchers\ThrowExample6;
+
+      class ClassUnderSpecification
+      {
+
+          public function work(Mock $mock)
+          {
+              try {
+                  $mock->work();
+              } catch (DomainException $e) {
+                  return $e->getFoo();
+              }
+
+              return 0;
+          }
+
+      }
+
+      class Mock
+      {
+          public function work()
+          {
+          }
+      }
+
+      class DomainException extends \Exception
+      {
+          public function getFoo()
+          {
+              return 42;
+          }
+      }
+
+      """
+    When I run phpspec
+    Then I should see:
+      """
+      banana
+      """
+    Then the suite should pass

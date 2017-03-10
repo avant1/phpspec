@@ -105,6 +105,7 @@ class ApplicationContext implements Context
         if ($formatter) {
             $arguments['--format'] = $formatter;
         }
+	    $arguments['-vvv'] = null;
 
         $this->addOptionToArguments($option, $arguments);
 
